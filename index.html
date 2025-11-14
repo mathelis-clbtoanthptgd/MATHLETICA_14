@@ -1,0 +1,1046 @@
+<!doctype html>
+<html lang="vi">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A Crime Story - Detective Game</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&amp;family=Special+Elite&amp;family=Oswald:wght@400;600&amp;family=Inter:wght@300;400;500&amp;display=swap" rel="stylesheet">
+  <style>
+        body {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #8D6E63 0%, #5D4037 100%);
+            min-height: 100%;
+            overflow-x: hidden;
+        }
+
+        html {
+            height: 100%;
+        }
+
+        .game-container {
+            min-height: 100%;
+            position: relative;
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(139, 69, 19, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(139, 69, 19, 0.1) 0%, transparent 50%);
+        }
+
+        /* Screen 1: Cover Page */
+        .screen {
+            display: none;
+            min-height: 100%;
+            padding: 20px;
+            position: relative;
+        }
+
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .case-file {
+            background: #F5F5DC;
+            border: 3px solid #5D4037;
+            border-radius: 8px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            position: relative;
+            box-shadow: 
+                0 10px 30px rgba(0,0,0,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.2);
+            transform: rotate(-1deg);
+            background-image: 
+                linear-gradient(90deg, transparent 79px, #E8E8E8 79px, #E8E8E8 81px, transparent 81px),
+                linear-gradient(#F5F5DC 0%, #F0F0DC 100%);
+        }
+
+        .case-file::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 20px;
+            background: #B71C1C;
+            border-radius: 3px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .case-file::after {
+            content: 'TOP SECRET';
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #B71C1C;
+            color: white;
+            padding: 5px 15px;
+            font-family: 'Oswald', sans-serif;
+            font-weight: 600;
+            font-size: 12px;
+            letter-spacing: 2px;
+            transform: rotate(15deg);
+            border: 2px solid #8B0000;
+        }
+
+        .game-title {
+            font-family: 'Black Ops One', cursive;
+            font-size: clamp(2.5rem, 8vw, 4rem);
+            color: #B71C1C;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-family: 'Inter', sans-serif;
+            font-style: italic;
+            font-size: 14px;
+            color: #5D4037;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .description {
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            color: #212121;
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+
+        .detective-input-container {
+            background: white;
+            border: 2px solid #5D4037;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 20px 0;
+            font-family: 'Special Elite', monospace;
+            font-size: 16px;
+            color: #212121;
+            position: relative;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .detective-input-text {
+            margin: 0;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 2px;
+            height: 20px;
+            background: #212121;
+            margin-left: 2px;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .start-button {
+            background: #B71C1C;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-family: 'Oswald', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            border-radius: 50px;
+            cursor: pointer;
+            position: relative;
+            transform: rotate(-2deg);
+            transition: all 0.3s ease;
+            animation: pulse 2s infinite;
+            box-shadow: 0 5px 15px rgba(183, 28, 28, 0.4);
+        }
+
+        @keyframes pulse {
+            0% { transform: rotate(-2deg) scale(1); }
+            50% { transform: rotate(-2deg) scale(1.05); }
+            100% { transform: rotate(-2deg) scale(1); }
+        }
+
+        .start-button:hover {
+            background: #8B0000;
+            transform: rotate(-2deg) scale(1.1);
+            box-shadow: 0 8px 25px rgba(183, 28, 28, 0.6);
+        }
+
+        /* Screen 2: Investigation Room */
+        .investigation-screen {
+            padding: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+            background-image: 
+                linear-gradient(90deg, transparent 24px, rgba(139, 69, 19, 0.1) 25px, rgba(139, 69, 19, 0.1) 26px, transparent 27px),
+                linear-gradient(rgba(245, 245, 220, 0.8) 0%, rgba(245, 245, 220, 0.8) 100%);
+            background-size: 30px 30px, 100% 100%;
+            border-radius: 8px;
+            min-height: 100%;
+        }
+
+        .investigation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #F5F5DC;
+            border: 2px solid #5D4037;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+
+        .detective-name {
+            font-family: 'Special Elite', monospace;
+            font-size: 18px;
+            color: #212121;
+            font-weight: bold;
+        }
+
+        .digital-clock {
+            font-family: 'Special Elite', monospace;
+            font-size: 24px;
+            color: #B71C1C;
+            background: #000;
+            padding: 8px 15px;
+            border-radius: 4px;
+            border: 2px solid #333;
+            box-shadow: inset 0 0 10px rgba(183, 28, 28, 0.3);
+        }
+
+        .case-header {
+            background: #F5F5DC;
+            border: 2px solid #5D4037;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .case-header::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            right: 20px;
+            width: 40px;
+            height: 16px;
+            background: #C0C0C0;
+            border-radius: 2px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .case-number {
+            font-family: 'Oswald', sans-serif;
+            font-size: 28px;
+            color: #B71C1C;
+            margin-bottom: 15px;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
+        .case-description {
+            font-family: 'Special Elite', monospace;
+            font-size: 16px;
+            line-height: 1.8;
+            color: #212121;
+            background: white;
+            padding: 20px;
+            border-left: 4px solid #B71C1C;
+            margin: 15px 0;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .testimonies-container {
+            margin: 30px 0;
+        }
+
+        .testimony-card {
+            background: #F5F5DC;
+            border: 2px solid #5D4037;
+            margin: 20px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            transform: rotate(-0.5deg);
+        }
+
+        .testimony-card:nth-child(even) {
+            transform: rotate(0.5deg);
+        }
+
+        .testimony-card::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: 15px;
+            width: 25px;
+            height: 10px;
+            background: #FFD700;
+            border-radius: 2px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .testimony-header {
+            background: #5D4037;
+            color: white;
+            padding: 12px 20px;
+            font-family: 'Oswald', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .testimony-content {
+            padding: 20px;
+            background: white;
+        }
+
+        .statement {
+            font-family: 'Special Elite', monospace;
+            font-size: 15px;
+            line-height: 1.6;
+            color: #212121;
+            margin: 8px 0;
+            padding: 5px 0;
+            opacity: 0;
+            animation: typewriter 0.8s ease-in-out forwards;
+        }
+
+        .statement:nth-child(1) { animation-delay: 0.2s; }
+        .statement:nth-child(2) { animation-delay: 0.6s; }
+        .statement:nth-child(3) { animation-delay: 1.0s; }
+
+        @keyframes typewriter {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .conclusion-container {
+            background: #F5F5DC;
+            border: 3px solid #B71C1C;
+            padding: 25px;
+            border-radius: 8px;
+            margin-top: 30px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(183, 28, 28, 0.3);
+        }
+
+        .conclusion-title {
+            font-family: 'Oswald', sans-serif;
+            font-size: 24px;
+            color: #B71C1C;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .suspects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .suspect-button {
+            background: white;
+            border: 2px solid #5D4037;
+            padding: 15px 20px;
+            font-family: 'Oswald', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            color: #212121;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+        }
+
+        .suspect-button:hover {
+            background: #B71C1C;
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(183, 28, 28, 0.4);
+        }
+
+        /* Screen 3: Victory */
+        .victory-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .victory-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .victory-popup {
+            background: #F5F5DC;
+            border: 3px solid #5D4037;
+            border-radius: 12px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+            position: relative;
+            animation: riseUp 0.8s ease-out;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        @keyframes riseUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px) scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .case-closed-stamp {
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            width: 120px;
+            height: 120px;
+            background: #B71C1C;
+            border: 4px solid #8B0000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: rotate(15deg);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .stamp-text {
+            color: white;
+            font-family: 'Oswald', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .confetti {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 100px;
+            background: 
+                radial-gradient(circle, #FFD700 2px, transparent 2px),
+                radial-gradient(circle, #FF6B6B 2px, transparent 2px),
+                radial-gradient(circle, #4ECDC4 2px, transparent 2px),
+                radial-gradient(circle, #45B7D1 2px, transparent 2px);
+            background-size: 20px 20px, 25px 25px, 30px 30px, 35px 35px;
+            background-position: 0 0, 10px 10px, 20px 20px, 30px 30px;
+            animation: confettifall 3s ease-in-out infinite;
+        }
+
+        @keyframes confettifall {
+            0% { transform: translateX(-50%) translateY(-20px) rotate(0deg); opacity: 1; }
+            100% { transform: translateX(-50%) translateY(200px) rotate(360deg); opacity: 0; }
+        }
+
+        .victory-title {
+            font-family: 'Oswald', sans-serif;
+            font-weight: 700;
+            font-size: clamp(1.8rem, 5vw, 2.5rem);
+            color: #00BCD4;
+            margin: 20px 0;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .victory-info {
+            background: white;
+            border: 2px solid #5D4037;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            font-family: 'Special Elite', monospace;
+            font-size: 16px;
+            color: #212121;
+        }
+
+        .victory-message {
+            font-family: 'Special Elite', monospace;
+            font-size: 16px;
+            color: #212121;
+            background: white;
+            padding: 20px;
+            border: 2px solid #5D4037;
+            border-radius: 8px;
+            margin: 20px 0;
+            line-height: 1.6;
+        }
+
+        .play-again-button {
+            background: #B71C1C;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-family: 'Oswald', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 25px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            animation: pulse 2s infinite;
+            box-shadow: 0 5px 15px rgba(183, 28, 28, 0.4);
+        }
+
+        .play-again-button:hover {
+            background: #8B0000;
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(183, 28, 28, 0.6);
+        }
+
+        /* Screen 4: Failure */
+        .failure-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .failure-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .failure-popup {
+            background: #F5F5DC;
+            border: 3px solid #B71C1C;
+            border-radius: 12px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            position: relative;
+            animation: shakeIn 0.8s ease-out;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        @keyframes shakeIn {
+            0% { transform: translateX(-10px); }
+            25% { transform: translateX(10px); }
+            50% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+            100% { transform: translateX(0); }
+        }
+
+        .failure-x {
+            font-size: 80px;
+            color: #B71C1C;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px rgba(183, 28, 28, 0.5);
+        }
+
+        .failure-title {
+            font-family: 'Oswald', sans-serif;
+            font-weight: 700;
+            font-size: clamp(2rem, 6vw, 3rem);
+            color: #B71C1C;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .failure-message {
+            font-family: 'Special Elite', monospace;
+            font-size: 16px;
+            color: #212121;
+            background: white;
+            padding: 20px;
+            border: 2px solid #5D4037;
+            border-radius: 8px;
+            margin: 20px 0;
+            line-height: 1.6;
+        }
+
+        .back-button {
+            background: #5D4037;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            font-family: 'Oswald', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .back-button:hover {
+            background: #3E2723;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(93, 64, 55, 0.4);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .case-file {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .game-title {
+                font-size: 2rem;
+            }
+            
+            .investigation-screen {
+                padding: 10px;
+            }
+        }
+
+        /* Paper clips decoration */
+        .paper-clip {
+            position: absolute;
+            width: 30px;
+            height: 60px;
+            background: #C0C0C0;
+            border-radius: 15px;
+            top: -15px;
+            left: 20px;
+            transform: rotate(-15deg);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .paper-clip::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 40px;
+            background: transparent;
+            border: 3px solid #A0A0A0;
+            border-radius: 10px;
+            top: 10px;
+            left: 5px;
+        }
+    </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <div class="game-container"><!-- Screen 1: Cover Page -->
+   <div class="screen active" id="coverScreen">
+    <div class="case-file">
+     <div class="paper-clip"></div>
+     <h1 class="game-title" id="gameTitle">A CRIME STORY</h1>
+     <p class="subtitle" id="subtitle">Trích từ tạp chí Scripta Mathematica của Mỹ</p>
+     <p class="description" id="description">Mathletica: Đố vui không thưởng #14</p>
+     <div class="detective-input-container"><input type="text" id="detectiveNameInput" placeholder="Nhập tên thám tử của bạn..." style="width: 100%; border: none; background: transparent; font-family: 'Special Elite', monospace; font-size: 16px; color: #212121; outline: none;">
+     </div><button class="start-button" id="startButton" onclick="startInvestigation()"> BẮT ĐẦU ĐIỀU TRA </button>
+    </div>
+   </div><!-- Screen 2: Investigation Room -->
+   <div class="screen" id="investigationScreen">
+    <div class="investigation-screen"><!-- Header with Detective Name and Clock -->
+     <div class="investigation-header">
+      <div class="detective-info"><span class="detective-name" id="detectiveNameDisplay">Thám tử: [Tên của bạn]</span>
+      </div>
+      <div class="clock-container">
+       <div class="digital-clock" id="digitalClock">
+        00:00
+       </div>
+      </div>
+     </div><!-- Case Report Header -->
+     <div class="case-header">
+      <div class="case-number">
+       BÁO CÁO VỤ VIỆC
+      </div>
+      <div class="case-description">
+       Một giáo viên trường tiểu học ở Bang New York đã bị mất trộm ví. Thủ phạm chắc chắn là một trong năm đứa trẻ sau: Lillian, Judy, David, Theo, hoặc Margaret. <br><br>
+        Khi bị thẩm vấn, mỗi đứa trẻ đưa ra ba lời khai:
+      </div>
+     </div><!-- Testimonies -->
+     <div class="testimonies-container">
+      <div class="testimony-card" data-suspect="Lillian">
+       <div class="testimony-header">
+        LILLIAN:
+       </div>
+       <div class="testimony-content" id="testimony-lillian">
+        <div class="statement">
+         (1) Em không lấy cái ví.
+        </div>
+        <div class="statement">
+         (2) Cả đời em chưa bao giờ ăn cắp bất cứ thứ gì.
+        </div>
+        <div class="statement">
+         (3) Theo đã làm điều đó.
+        </div>
+       </div>
+      </div>
+      <div class="testimony-card" data-suspect="Judy">
+       <div class="testimony-header">
+        JUDY:
+       </div>
+       <div class="testimony-content" id="testimony-judy">
+        <div class="statement">
+         (4) Em không lấy cái ví.
+        </div>
+        <div class="statement">
+         (5) Bố em đủ giàu, và em có ví riêng của mình.
+        </div>
+        <div class="statement">
+         (6) Margaret biết ai đã làm điều đó.
+        </div>
+       </div>
+      </div>
+      <div class="testimony-card" data-suspect="David">
+       <div class="testimony-header">
+        DAVID:
+       </div>
+       <div class="testimony-content" id="testimony-david">
+        <div class="statement">
+         (7) Em không lấy cái ví.
+        </div>
+        <div class="statement">
+         (8) Em không quen Margaret trước khi em vào trường này.
+        </div>
+        <div class="statement">
+         (9) Theo đã làm điều đó.
+        </div>
+       </div>
+      </div>
+      <div class="testimony-card" data-suspect="Theo">
+       <div class="testimony-header">
+        THEO:
+       </div>
+       <div class="testimony-content" id="testimony-theo">
+        <div class="statement">
+         (10) Em vô tội.
+        </div>
+        <div class="statement">
+         (11) Margaret đã làm điều đó.
+        </div>
+        <div class="statement">
+         (12) Lillian đang nói dối khi cô ấy nói em đã lấy trộm cái ví.
+        </div>
+       </div>
+      </div>
+      <div class="testimony-card" data-suspect="Margaret">
+       <div class="testimony-header">
+        MARGARET:
+       </div>
+       <div class="testimony-content" id="testimony-margaret">
+        <div class="statement">
+         (13) Em không lấy cái ví của cô giáo.
+        </div>
+        <div class="statement">
+         (14) Judy là thủ phạm.
+        </div>
+        <div class="statement">
+         (15) David có thể bảo lãnh cho em vì anh ấy biết em từ khi em mới sinh ra.
+        </div>
+       </div>
+      </div>
+     </div><!-- Conclusion Section -->
+     <div class="conclusion-container">
+      <div class="conclusion-title">
+       KẾT LUẬN CỦA BẠN: AI LÀ THỦ PHẠM?
+      </div>
+      <div class="suspects-grid"><button class="suspect-button" onclick="checkSuspect('wrong')">LILLIAN</button> <button class="suspect-button" onclick="checkSuspect('correct')">JUDY</button> <button class="suspect-button" onclick="checkSuspect('wrong')">DAVID</button> <button class="suspect-button" onclick="checkSuspect('wrong')">THEO</button> <button class="suspect-button" onclick="checkSuspect('wrong')">MARGARET</button>
+      </div>
+     </div>
+    </div>
+   </div><!-- Screen 3: Victory -->
+   <div class="screen" id="victoryScreen">
+    <div class="victory-screen">
+     <div class="victory-overlay">
+      <div class="victory-popup">
+       <div class="case-closed-stamp">
+        <div class="stamp-text">
+         CASE CLOSED
+        </div>
+       </div>
+       <div class="confetti"></div>
+       <h1 class="victory-title">VỤ ÁN ĐÃ ĐƯỢC GIẢI QUYẾT!</h1>
+       <div class="victory-info">
+        <div class="detective-result"><strong>Thám tử:</strong> <span id="victoryDetectiveName">[Tên của bạn]</span>
+        </div>
+        <div class="time-result"><strong>Thời gian phá án:</strong> <span id="completionTime">00:00</span>
+        </div>
+       </div>
+       <div class="victory-message">
+        Xuất sắc! Bạn đã xác định đúng thủ phạm là <strong>JUDY</strong>. <br><br>
+         Dựa trên phân tích lời khai, chỉ có Judy là người có mâu thuẫn trong lời khai của các nghi phạm khác, và Margaret (câu 14) đã trực tiếp cáo buộc Judy là thủ phạm. <br><br><em>Chúc mừng thám tử xuất sắc!</em>
+       </div><button class="play-again-button" onclick="restartGame()">CHƠI LẠI</button>
+      </div>
+     </div>
+    </div>
+   </div><!-- Screen 4: Failure -->
+   <div class="screen" id="failureScreen">
+    <div class="failure-screen">
+     <div class="failure-overlay">
+      <div class="failure-popup">
+       <div class="failure-x">
+        ✗
+       </div>
+       <h1 class="failure-title">SAI RỒI!</h1>
+       <div class="failure-message">
+        Đó không phải là thủ phạm. Các manh mối chưa khớp. <br><br>
+         Hãy suy nghĩ lại về lời khai của từng nghi phạm và tìm ra mâu thuẫn! <br><br><em>Thử lại nhé!</em>
+       </div>
+       <div class="failure-buttons"><button class="back-button" onclick="goBackToInvestigation()">QUAY LẠI HIỆN TRƯỜNG</button>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <script>
+        // Game state management
+        let gameStartTime = null;
+        let clockInterval = null;
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function startInvestigation() {
+            const detectiveName = document.getElementById('detectiveNameInput').value.trim();
+            const displayName = detectiveName || 'Thám tử ẩn danh';
+            
+            // Update detective name in investigation screen
+            document.getElementById('detectiveNameDisplay').textContent = `Thám tử: ${displayName}`;
+            
+            gameStartTime = Date.now();
+            startClock();
+            showScreen('investigationScreen');
+        }
+
+        function startClock() {
+            if (clockInterval) clearInterval(clockInterval);
+            
+            clockInterval = setInterval(() => {
+                if (gameStartTime) {
+                    const elapsed = Math.floor((Date.now() - gameStartTime) / 1000);
+                    const minutes = Math.floor(elapsed / 60);
+                    const seconds = elapsed % 60;
+                    const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    
+                    const clockElement = document.getElementById('digitalClock');
+                    if (clockElement) {
+                        clockElement.textContent = timeString;
+                    }
+                }
+            }, 1000);
+        }
+
+        function stopClock() {
+            if (clockInterval) {
+                clearInterval(clockInterval);
+                clockInterval = null;
+            }
+        }
+
+        function checkSuspect(result) {
+            stopClock();
+            
+            if (result === 'correct') {
+                // Calculate completion time
+                const elapsed = Math.floor((Date.now() - gameStartTime) / 1000);
+                const minutes = Math.floor(elapsed / 60);
+                const seconds = elapsed % 60;
+                const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                // Update victory screen with detective name and time
+                const detectiveName = document.getElementById('detectiveNameInput').value.trim() || 'Thám tử ẩn danh';
+                document.getElementById('victoryDetectiveName').textContent = detectiveName;
+                document.getElementById('completionTime').textContent = timeString;
+                
+                showScreen('victoryScreen');
+            } else {
+                showScreen('failureScreen');
+            }
+        }
+
+        function goBackToInvestigation() {
+            startClock();
+            showScreen('investigationScreen');
+        }
+
+        function restartGame() {
+            stopClock();
+            gameStartTime = null;
+            document.getElementById('digitalClock').textContent = '00:00';
+            document.getElementById('detectiveNameInput').value = '';
+            document.getElementById('detectiveNameDisplay').textContent = 'Thám tử: [Tên của bạn]';
+            showScreen('coverScreen');
+        }
+
+        // Element SDK Configuration
+        const defaultConfig = {
+            game_title: "A CRIME STORY",
+            subtitle: "Trích từ tạp chí Scripta Mathematica của Mỹ",
+            description: "Mathletica: Đố vui không thưởng #14",
+            detective_prompt: "Nhập tên thám tử của bạn...",
+            start_button: "BẮT ĐẦU ĐIỀU TRA",
+            primary_color: "#B71C1C",
+            background_color: "#F5F5DC",
+            text_color: "#212121",
+            border_color: "#5D4037",
+            font_family: "Inter"
+        };
+
+        async function onConfigChange(config) {
+            const gameTitle = config.game_title || defaultConfig.game_title;
+            const subtitle = config.subtitle || defaultConfig.subtitle;
+            const description = config.description || defaultConfig.description;
+            const detectivePrompt = config.detective_prompt || defaultConfig.detective_prompt;
+            const startButton = config.start_button || defaultConfig.start_button;
+            const primaryColor = config.primary_color || defaultConfig.primary_color;
+            const backgroundColor = config.background_color || defaultConfig.background_color;
+            const textColor = config.text_color || defaultConfig.text_color;
+            const borderColor = config.border_color || defaultConfig.border_color;
+            const fontFamily = config.font_family || defaultConfig.font_family;
+
+            // Update text content
+            document.getElementById('gameTitle').textContent = gameTitle;
+            document.getElementById('subtitle').textContent = subtitle;
+            document.getElementById('description').textContent = description;
+            document.getElementById('detectivePrompt').innerHTML = detectivePrompt + '<span class="cursor"></span>';
+            document.getElementById('startButton').textContent = startButton;
+
+            // Update colors
+            document.documentElement.style.setProperty('--primary-color', primaryColor);
+            document.documentElement.style.setProperty('--background-color', backgroundColor);
+            document.documentElement.style.setProperty('--text-color', textColor);
+            document.documentElement.style.setProperty('--border-color', borderColor);
+
+            // Update fonts
+            const baseFontStack = 'Arial, sans-serif';
+            document.body.style.fontFamily = `${fontFamily}, ${baseFontStack}`;
+        }
+
+        function mapToCapabilities(config) {
+            return {
+                recolorables: [
+                    {
+                        get: () => config.primary_color || defaultConfig.primary_color,
+                        set: (value) => {
+                            if (window.elementSdk) {
+                                window.elementSdk.setConfig({ primary_color: value });
+                            }
+                        }
+                    },
+                    {
+                        get: () => config.background_color || defaultConfig.background_color,
+                        set: (value) => {
+                            if (window.elementSdk) {
+                                window.elementSdk.setConfig({ background_color: value });
+                            }
+                        }
+                    },
+                    {
+                        get: () => config.text_color || defaultConfig.text_color,
+                        set: (value) => {
+                            if (window.elementSdk) {
+                                window.elementSdk.setConfig({ text_color: value });
+                            }
+                        }
+                    },
+                    {
+                        get: () => config.border_color || defaultConfig.border_color,
+                        set: (value) => {
+                            if (window.elementSdk) {
+                                window.elementSdk.setConfig({ border_color: value });
+                            }
+                        }
+                    }
+                ],
+                borderables: [],
+                fontEditable: {
+                    get: () => config.font_family || defaultConfig.font_family,
+                    set: (value) => {
+                        if (window.elementSdk) {
+                            window.elementSdk.setConfig({ font_family: value });
+                        }
+                    }
+                },
+                fontSizeable: undefined
+            };
+        }
+
+        function mapToEditPanelValues(config) {
+            return new Map([
+                ["game_title", config.game_title || defaultConfig.game_title],
+                ["subtitle", config.subtitle || defaultConfig.subtitle],
+                ["description", config.description || defaultConfig.description],
+                ["detective_prompt", config.detective_prompt || defaultConfig.detective_prompt],
+                ["start_button", config.start_button || defaultConfig.start_button]
+            ]);
+        }
+
+        // Initialize Element SDK
+        if (window.elementSdk) {
+            window.elementSdk.init({
+                defaultConfig,
+                onConfigChange,
+                mapToCapabilities,
+                mapToEditPanelValues
+            });
+        }
+    </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99e5191d15f28be4',t:'MTc2MzEwODUxNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
